@@ -7,12 +7,20 @@
 #define DataUploader_h
 
 #include "Arduino.h"
+#include "WifiConnection.h"
+#include "ConfigurationValue.h"
 
 
 class DataUploader
 {
+  private:
+   //necessary to navigate as linked list.  
+   WifiConnection* _wifi;
+   char* _host;
+   int _port;
+   ConfigurationValue* _additionalConfs;
   public:
-    DataUploader();
+    DataUploader(WifiConnection* wifi, char *host, int port, ConfigurationValue* additionalConfs);
 };
 
 #endif

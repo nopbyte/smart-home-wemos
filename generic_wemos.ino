@@ -3,6 +3,7 @@
 #include "SensorConfiguration.h"
 #include "DHT11SensorConfiguration.h"
 #include "ConfigurationValue.h"
+#include "DataUploader.h"
 #include "WifiConnection.h"
 
 /* These variables come from the definitions in the configuration.h and are required to 
@@ -19,8 +20,10 @@ String confSeparator = ":";
 /* Configuration loading... update the configuration.h file*/
 char* confServer = SERVER;
 int confServerPort = PORT;
+char * dataServer = SERVER;
 int dataPort = 0;
-WifiConnection* wifi;
+WifiConnection* wifi = NULL;
+DataUploader *uploader = NULL;
 
 /* To be configured after fetchiing configuration info*/
 int myDelay = 1000;//
@@ -53,7 +56,15 @@ void setup() {
     wifi = new WifiConnection(ssid, password);
     res = wifi->exchangeHttp(confServer, confServerPort, "GET","/conf/?id="+id, "");  
     delay(10);
-    configured =  setConf(res);    
+    configured =  setConf(res);
+    ConfigurationValue* additionalUploaderConfs = NULL;
+    //set up data uploader
+    //set username and password for data upload
+    ConfigurationValue* username = new ConfigurationValue("username",DATAUSERNAME);    
+    ConfigurationValue* password = new ConfigurationValue("password",DATAPASSWORD);
+    additionalUploaderConfs = appendToConfigurationValues( additionalUploaderConfs, username);
+    additionalUploaderConfs = appendToConfigurationValues( additionalUploaderConfs, password);    
+    uploader = new DataUploader(wifi, dataServer, dataPort, additionalUploaderConfs );
   }
 }
 
@@ -183,8 +194,7 @@ bool setConf(String res){
                 }
                 conf = NULL;
                 sensorType = line.substring(0,line.indexOf(":"));
-                String up;
-                current = new DHT11SensorConfiguration(up, sensorType);
+                current = new DHT11SensorConfiguration(uploader, sensorType);
                 
            }
         }
@@ -192,8 +202,7 @@ bool setConf(String res){
       else{
         continue;
       }
-      //TODO remove this later!
-      delay(200);
+      
 
     }while(0 <= nexti);
     return true; 

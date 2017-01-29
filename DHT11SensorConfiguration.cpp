@@ -19,7 +19,7 @@ void DHT11SensorConfiguration::execute()
 
   ConfigurationValue* tmp = _confValues;
   while(tmp!=NULL){
-    Serial.println(" -- key"+tmp->key+", "+tmp->value);
+    Serial.println(" -- key"+tmp->getKey()+", "+tmp->getValue());
     tmp = tmp->next();
   }
   Serial.println("reading sensor!");

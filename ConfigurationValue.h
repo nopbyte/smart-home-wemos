@@ -11,11 +11,15 @@ class ConfigurationValue
 {
   public:
     ConfigurationValue(String key, String value);
-    String key; 
-    String value;
+    void setKey(String k);
+    void setValue(String v);
+    String getKey();
+    String getValue();
     void setSuccessor(ConfigurationValue* suc);
     ConfigurationValue* next();
   private:
+    String _key; 
+    String _value;
     ConfigurationValue* _successor;
     
 

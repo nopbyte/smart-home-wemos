@@ -9,6 +9,8 @@
 
 #include "Arduino.h"
 #include "ConfigurationValue.h"
+#include "DataUploader.h"
+
 
 
 class SensorConfiguration
@@ -19,7 +21,7 @@ class SensorConfiguration
    
   public:
     //Constructor
-    SensorConfiguration(String uploader, String type);
+    SensorConfiguration(DataUploader* uploader, String type);
     //abstract method that subclasses should implement.
     //initialize. i.e. parse all the confValues and keep them in local variables
     virtual void init();
@@ -41,7 +43,8 @@ class SensorConfiguration
    String _kind; //reflecting the class that has been loaded. this info is used to instantiate the propper subclass in the main .cc file in function setConf.
    String _pin; // string representation of the pin, i.e. A0;
    String _location; //location in your house :);
-   ConfigurationValue* _confValues;
+   ConfigurationValue* _confValues; //linkedlist of values to configure each sensor... these are just key value pairs
+   DataUploader* _uploader;//object to upload data... can be seen as a connector towards a backend or gateway to store data
   
 };
 

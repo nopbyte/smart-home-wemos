@@ -7,12 +7,12 @@
 #include "SensorConfiguration.h"
 
 
-SensorConfiguration::SensorConfiguration(String up, String type)
+SensorConfiguration::SensorConfiguration(DataUploader* up, String type)
 {
   _successor = NULL;
   _confValues = NULL;
   _kind = type;
-  //_uploader = up;
+  _uploader = up;
   _location = "unknown location";
 }
 void SensorConfiguration::setKind(String k){
