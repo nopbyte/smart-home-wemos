@@ -1,10 +1,13 @@
 #include <ESP8266WiFi.h>
 #include "configuration.h"
-#include "SensorConfiguration.h"
-#include "DHT11SensorConfiguration.h"
 #include "ConfigurationValue.h"
 #include "DataUploader.h"
 #include "WifiConnection.h"
+
+//sensors
+#include "SensorConfiguration.h"
+#include "DHT11SensorConfiguration.h"
+#include "GenericAnalogSensorConfiguration.h"
 
 /* These variables come from the definitions in the configuration.h and are required to 
   reach the confServer that will serve the actual configuration information, i.e. sensors and locations
@@ -21,7 +24,7 @@ String confSeparator = ":";
 char* confServer = SERVER;
 int confServerPort = PORT;
 char * dataServer = SERVER;
-int dataPort = 0;
+int dataPort = 8080;
 WifiConnection* wifi = NULL;
 DataUploader *uploader = NULL;
 
@@ -29,15 +32,23 @@ DataUploader *uploader = NULL;
 int myDelay = 1000;//
 
 SensorConfiguration* headConf = NULL;
-/* 
-  PINS used for the sensors
-*/
 
 //DO NOT USE D4... this is the LED!
 //DO NOT USE D4... this is the LED!
 //DO NOT USE D4... this is the LED!
 
-
+DataUploader* createDataUploader(){
+    ConfigurationValue* additionalUploaderConfs = NULL;
+    //set up data uploader
+    //set username and password and dbname for data upload
+    ConfigurationValue* username = new ConfigurationValue("username",DATAUSERNAME);    
+    ConfigurationValue* password = new ConfigurationValue("password",DATAPASSWORD);
+    ConfigurationValue* dbname = new ConfigurationValue("database",DBNAME);
+    additionalUploaderConfs = appendToConfigurationValues( additionalUploaderConfs, username);
+    additionalUploaderConfs = appendToConfigurationValues( additionalUploaderConfs, password);   
+    additionalUploaderConfs = appendToConfigurationValues( additionalUploaderConfs, dbname);    
+    uploader = new DataUploader(wifi, dataServer, dataPort, additionalUploaderConfs );
+}
 
 
 void setup() {
@@ -50,6 +61,7 @@ void setup() {
   String res;
   Serial.print("device id" + id);
   while(!configured){
+    createDataUploader();
     Serial.println("not configured");
     errorBlink(200);
     delay(2000);
@@ -57,14 +69,7 @@ void setup() {
     res = wifi->exchangeHttp(confServer, confServerPort, "GET","/conf/?id="+id, "");  
     delay(10);
     configured =  setConf(res);
-    ConfigurationValue* additionalUploaderConfs = NULL;
-    //set up data uploader
-    //set username and password for data upload
-    ConfigurationValue* username = new ConfigurationValue("username",DATAUSERNAME);    
-    ConfigurationValue* password = new ConfigurationValue("password",DATAPASSWORD);
-    additionalUploaderConfs = appendToConfigurationValues( additionalUploaderConfs, username);
-    additionalUploaderConfs = appendToConfigurationValues( additionalUploaderConfs, password);    
-    uploader = new DataUploader(wifi, dataServer, dataPort, additionalUploaderConfs );
+    uploader->setDataPort(dataPort);//this is only loaded after the setConf
   }
 }
 
@@ -194,7 +199,11 @@ bool setConf(String res){
                 }
                 conf = NULL;
                 sensorType = line.substring(0,line.indexOf(":"));
-                current = new DHT11SensorConfiguration(uploader, sensorType);
+                if(sensorType == "dht11"){
+                  current = new DHT11SensorConfiguration(uploader, sensorType);
+                }else if(sensorType == "generic"){
+                  current = new GenericAnalogSensorConfiguration(uploader, sensorType);
+                }
                 
            }
         }

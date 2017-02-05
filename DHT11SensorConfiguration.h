@@ -9,16 +9,17 @@
 #include "Arduino.h"
 #include "SensorConfiguration.h"
 #include "DataUploader.h"
-
+#include "DHT.h"
 
 
 class DHT11SensorConfiguration: public  SensorConfiguration
 {
-
   public:
-    explicit DHT11SensorConfiguration(DataUploader* dataup, String type) : SensorConfiguration(dataup, type) { }
+    explicit DHT11SensorConfiguration(DataUploader* dataup, String type) : SensorConfiguration(dataup, type) {
+      
+    }
     void execute();
-    void init();
+    void init(ConfigurationValue* val);
 
 };
 
